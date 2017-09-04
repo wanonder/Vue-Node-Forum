@@ -1,44 +1,34 @@
 <template>
   <div class="user-page">
-       <div class="user-info-others" v-if="!userStatus">
-         <img :src="picture">
-         <div class="detail-info">
-            <p class="username">{{infoList.userName}}</p>  
-            <p  class="info-item">城市：{{infoList.city}}  </p> 
-            <p  class="info-item">学校：{{infoList.school}} </p>
-            <p  class="info-item">github：{{infoList.github}} </p> 
-            <p  class="info-item">博客：{{infoList.blog}} </p>
-          </div>
-       </div>
-      
-      <div class="user-info-self" v-if="userStatus">
-     <img-Input v-model="target" :pic="picture"  @imgView="imgPreview" ></img-Input>
+      <div class="user-info">
+     <img-Input v-model="target"></img-Input>
         <div class="detail-info">
            <p class="username">{{infoList.userName}}</p>
 
           <p class="info-item"> 
-           <span  class="info"  v-if="citys">城市：{{infoList.city}}  <a href="javascript:void" @click=" citys='' ">修改</a></span>
+           <span  class="cityinfo"  v-if="citys">城市：{{infoList.city}}  <a href="javascript:void" @click=" citys='' ">修改</a></span>
            <span  class="info-tip"  v-else-if="cityStatus" @click="cityStatus=false"> 填写城市信息: </span>
            <span  v-else> <input  v-model.lazy="infoList.city"    placeholder="城市名称" >  <button @click="infoConfirm('city')">确定</button> </span>
           </p>
 
           <p class="info-item">
-            <span  class="info"  v-if="schools">学校：{{infoList.school}}  <a href="javascript:void" @click="schools=''">修改</a></span>
+            <span  class="cityinfo"  v-if="schools">学校：{{infoList.school}}  <a href="javascript:void" @click="schools=''">修改</a></span>
             <span  class="info-tip"  v-else-if="schoolStatus" @click="schoolStatus=false">填写学校信息: </span>
             <span  v-else><input v-model="infoList.school" placeholder="学校名称" >  <button @click="infoConfirm('school')">确定</button> </span>
           </p>
 
           <p class="info-item">
-            <span  class="info"  v-if="githubs">github：{{infoList.github}}  <a href="javascript:void" @click="githubs=''">修改</a></span>
+            <span  class="cityinfo"  v-if="githubs">github：{{infoList.github}}  <a href="javascript:void" @click="githubs=''">修改</a></span>
             <span   class="info-tip"  v-else-if="githubStatus" @click="githubStatus=false">填写github信息: </span>
             <span v-else> <input v-model="infoList.github"  placeholder="你的github地址" > <button @click="infoConfirm('github')">确定</button> </span>
           </p> 
 
           <p class="info-item">
-            <span  class="info"  v-if="blogs">博客：{{infoList.blog}}  <a href="javascript:void" @click="blogs=''">修改</a></span>
+            <span  class="cityinfo"  v-if="blogs">博客：{{infoList.blog}}  <a href="javascript:void" @click="blogs=''">修改</a></span>
            <span  class="info-tip" v-else-if="blogStatus" @click="blogStatus=false">填写博客信息: </span>
            <span v-else> <input v-model="infoList.blog" placeholder="你的博客"> <button @click="infoConfirm('blog')">确定</button>  </span>
           </p>
+
         </div> 
       </div>
 
@@ -47,33 +37,28 @@
           <div class="latest-header">
               <span>{{infoList.userName}}  最近创建的话题</span>
           </div>
-           <li class="latest-item" v-for="item in articleList" :key="item._id"  v-if="articleList.length">
+           <li class="latest-item" v-for="item in articleList" :key="item._id" >
               <span class="pic"><img :src="'/static/'+item.author_img"></span>
 
               <span class="title">
               <router-link :to="{ name: 'article', params:{ id: item._id }}">{{ item.title }}</router-link>
-             </span>    <br>
+             </span><br>
               <span class="meta">
                   <span  class="by">
              by <router-link :to="{name:'user',params:{username:item.author_name}}">{{ item.author_name }}</router-link>
                    </span>
             </span>
-          </li>   
-      </div>
-
-      <div  v-if="!articleList.length">
-        <li class="latest-item no">该用户最近没有创建任何话题</li>
+        </li>   
       </div>
   </div>
 </template>
 <script>
 import axios from 'axios';
-import imgInput from './../view/imgInput'
+import imgInput from '../imgInput'
 export default {
      data () {
 
          return {  
-              target:'',
               infoList: {},
               articleList:[],
               blogStatus:true,
@@ -83,9 +68,7 @@ export default {
               citys:'',
               schools:'',
               githubs:'',
-              blogs:'', 
-              picture:'',
-              userStatus:false     
+              blogs:''        
           }
         },
      watch: {
@@ -95,7 +78,7 @@ export default {
      imgInput
     },
     mounted () {
-      this.userStatus = (document.cookie.split('=')[1]==this.$route.params.username)
+      
     },
     created() {
      this.fetchUserData(); 
@@ -103,6 +86,7 @@ export default {
     },
 
     methods: {
+
       init () {
         this.citys = this.infoList.city;
         this.schools = this.infoList.school,
@@ -111,34 +95,8 @@ export default {
         this.companys = this.infoList.company,
         this.githubs = this.infoList.github,
         this.blogs = this.infoList.blog 
-        this.picture = "../static/"+this.infoList.userImg
       },
 
-
-  /*预览用户图片*/
-   imgPreview (file) {
-      let self = this;
-         // 看支持不支持FileReader
-     if (!file || !window.FileReader) return;
-    
-     if (/^image/.test(file.type)) {
-           // 创建一个reader
-     var reader = new FileReader();
-         // 将图片将转成 base64 格式
-     reader.readAsDataURL(file);
-                // 读取成功后的回调
-     reader.onloadend = function () {
-         self.picture = this.result;
-                
-      }
-
-      this.fetchArticleData();
-    }
-
-    
-      
-        }
-    ,    
    /*保存用户填入的数据*/
     infoConfirm (item) {
       this[item+'s'] = this.infoList[item];
@@ -168,7 +126,7 @@ export default {
     fetchArticleData() {
       axios.post('/edit/getArticlesByParam',{author_name:this.$route.params.username}).then((result)=>{
         let res= result.data;
-        this.articleList=res.result;
+        this.articleList.push(res.result);
       })
     }
   }
@@ -181,14 +139,7 @@ export default {
 
 }
 
-.user-info-others img{
-    border-radius: 8px;
-    width:120px;
-    height:120px;
-    float:left;
-    margin: 20px 0 0 20px;
-}
-.user-info-self,.user-info-others {
+.user-info {
     background-color: #fff;
     border:1px solid #eee;
     border-radius:3px;
@@ -196,17 +147,16 @@ export default {
     overflow: hidden;
      box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 2px 0px;
 }
-
-
-.info a {
-  display: none;
+.user-info img {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    float:left;
+    margin-left: 25px;
 }
 
-.info:hover > a {
-  display: inline;
-}
-
-.info-item {
+ .info-item {
     margin-top: 20px;
     min-width: 600px;  
     display: flex;
@@ -302,11 +252,8 @@ a {
  }
 a:hover {
   color:#ff6600;
-}
+}  
 
-.no {
-  text-align: center;
-}
 
 
 

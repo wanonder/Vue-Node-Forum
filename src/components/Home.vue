@@ -3,14 +3,14 @@
  <nav-header></nav-header>
  
    <div class="content">
-     <keep-alive>
-        <router-view name="main"></router-view>
-     </keep-alive>
+        <router-view ></router-view>
    </div> 
+   <main-footer></main-footer>
   </div>
 </template>
-<<script>
+<script>
 import navHeader from  '../view/navHeader'
+import mainFooter from './mainFooter'
 export default {
   data ()  {
       return {
@@ -18,38 +18,29 @@ export default {
       }
   },
   components: {
-      navHeader
-  },
-  methods: {
-      
+      navHeader,
+      mainFooter
   }
-
 }
 </script>
 
 <style>
-  * {
-    padding: 0;
-    margin: 0;
-  }
- body {
-    font-size: 1.2rem;
-    line-height: 1.5;
-    background-color: #f7f7f7;
-    padding:0;
-    margin: 0;
+body {
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size :14px;
+  background-color: lighten(#eceef1, 30%);
+  margin: 0;
+  padding-top:55px;
+  color: #34495e;
+  overflow-y:scroll;
+}
+
+li {
+  list-style: none;
 }
 
 
-.content {
-  width: 45%;
-  margin:80px auto;
-}
 
-a  {
-  color :white;
-  text-decoration:none;
-}
 </style>
 
 

@@ -1,94 +1,167 @@
 <template>
-   <div class="main-sec">         
-           <div class="main-title">
-               <ul>
-                   <li><a href="#">全部</a></li>
-                   <li><a href="#">精华</a></li>
-                   <li><a href="#">分享</a></li>
-                   <li><a href="#">问答</a></li>
-                   <li><a href="#">招聘</a></li>
-               </ul>
-           </div>
-           <div class="main-content">
-               <div class="main-article" v-for="(item,index) in articles"  :key=index>
-                    <router-link :to='{name: "UserRoute",params:{name: item.author.loginname}}'>
-                       <img :src='item.author.avatar_url' :title='item.author.loginname'>
-                    </router-link>
-                    <span class="article-reply"> {{item.reply_count}}/</span>
-                    <span class="article-view">  {{item.visit_count}}</span>
-                    <span class="article-title">{{item.title}}</span>
-               </div>
-           </div>
-   </div>
+  <div class="news-view view">
+    <div class="news-list-nav">
+      <router-link v-if="page > 1" :to="'/' + type + '/' + (page - 1)">&lt; prev</router-link>
+      <a v-else class="disabled">&lt; prev</a>
+      <span>{{ page }}/{{ maxPage }}</span>
+      <router-link v-if="hasMore" :to="'/' + type + '/' + (page + 1)">more &gt;</router-link>
+       <a v-else class="disabled">more &gt;</a>
+    </div>
+    <transition :name="transition">
+      <div class="news-list" >
+        <transition-group tag="ul" name="item">
+          <item v-for="item in ArticleList" :key="item._id" :item="item">
+          </item>
+        </transition-group>
+      </div>
+    </transition>
+  </div>
 </template>
-<<script>
+
+<script>
 import axios from 'axios'
+import item from './../view/item'
+import bus from './../assets/js/bus.js'
 export default {
     data () {
         return {
-            articles:[]
+           ArticleList:[],
+           maxPage:1,
+           transition: 'slide-right',
+           pageSize:8,
+           type:'hot'
         }
     },
-    mounted () {
-        this.getArticles();
+   
+
+    components:{
+      item
     },
+    computed:{
+      page () {
+      return Number(this.$route.params.page) || 1
+       },
+      hasMore () {
+      return this.page < this.maxPage
+      }  
+
+    },
+  
+   beforeRouteUpdate (to,from,next){    
+
+          next()    
+          this.getArticleList();
+
+      },
+
+      mounted(){
+        this.getArticleList();
+      },
+
+     created(){
+        bus.$on('routeChange',(a)=>{
+          this.type = a;
+          this.getArticleList();
+        })
+     } ,
+
     methods: {
-        getArticles () {
-            axios.get('https://cnodejs.org/api/v1/topics').then((result)=>{
-                let res = result.data.data;
-                this.articles = res;
-            })
+        getArticleList () {
+           
+          var param = {
+             page:this.$route.params.page||1,
+             pageSize:this.pageSize,
+             sort:this.type
+          }
+           axios.post('/edit/getArticleList',param).then((result)=>{
+               let res = result.data;
+               this.ArticleList = res.result;
+               this.maxPage = Math.ceil(res.msg / this.pageSize);
+           })
         }
+
     }
 }
 </script>
 
 <style scoped>
-  .main-sec {
-      font-size: 12px;
-  }
-  .main-title {
-      width: 100%;
-      background: rgb(246, 246, 246);
-      border: 1px solid rgb(222,222,222);
-      border-radius: 3px;
-      padding: 10px 0
-  }
  
-  .main-title ul {
-    list-style: none;
-  }
-  .main-title ul li {
-    display: inline-block;
-    padding: 5px;
-  }
-  img {
-    width: 30px;
-    height: 30px;
-    margin-right: 2rem;
-  }
-   ul li a {
-      color: green;
-      text-decoration: none;
-  }
+.news-view{
+  padding-top: 45px;
+}
 
-  .main-content {
-      width: 100%;
-  }
+.news-list-nav, .news-list {
+  background-color: #fff;
+  border-radius: 2px;
+}
+.news-list-nav {
+  padding: 15px 30px;
+  position: fixed;
+  text-align: center;
+  top: 55px;
+  left: 0;
+  right: 0;
+  z-index: 998;
+  box-shadow: 0 1px 2px rgba(0,0,0,.1);
+}
 
-  .main-article {
-      width: 100%;
-      height: 40px;
-      background: rgba(255, 255, 255, .8);
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0, 0, 0,.1);
-  }
-
-  .article-reply {
-      color: purple;
-      font-size: 16px;
-  }
+.view {
+ max-width:800px;
+ margin:0 auto;
+ position:relative
+}
 
 
+  a {
+    margin: 0 1em;
+  }
+  .disabled {
+    color: #ccc;
+  }
+
+.news-list {
+  position: absolute;
+  margin:30px 0;
+  width: 100%;
+  transition:all .5s cubic-bezier(.55,0,.1,1);
+ } 
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.slide-left-enter, .slide-right-leave-to {
+  opacity: 0;
+  transform: translate(30px, 0);
+}
+
+.slide-left-leave-to, .slide-right-enter {
+  opacity: 0;
+  transform: translate(-30px, 0);
+}
+
+.item-move, .item-enter-active, .item-leave-active {
+  transition:all .5s cubic-bezier(.55,0,.1,1);
+}
+
+.item-enter {
+  opacity: 0;
+  transform: translate(30px, 0);
+}
+
+.item-leave-active {
+  position: absolute;
+  opacity: 0;
+  transform: translate(30px, 0);
+}
+
+@media (max-width 600px) {
+  .news-list{
+    margin:10px 0;
+  }
+}
 </style>
+
+
 

@@ -30,7 +30,17 @@ module.exports = {
     proxyTable: { 
       '/users/*':{
         target:'http://localhost:3000'
-      }},
+      },
+      '/users':{
+        target:'http://localhost:3000'
+       },
+      '/edit/*':{
+        target:'http://localhost:3000'
+       },
+        '/edit':{
+        target:'http://localhost:3000'
+       }
+      },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README
     // (https://github.com/webpack/css-loader#sourcemaps)
